@@ -202,6 +202,349 @@ The Telco Customer Churn dataset was successfully cleaned and explored.
 The analysis included handling missing values, correcting data types, checking duplicates, analyzing statistical properties, detecting outliers, studying feature relationships, and generating multiple visualizations.
 The cleaned dataset was saved as cleaned_data.csv, which will be used in Part 2 for predictive machine learning model development.
 
+Model Evaluation and Analysis
+Part 1: Linear Regression (OLS)
+Mean Squared Error (MSE)
+
+Mean Squared Error measures the average squared difference between the actual and predicted values.
+
+MSE=
+n
+1
+	​
+
+i=1
+∑
+n
+	​
+
+(y
+i
+	​
+
+−
+y
+i
+	​
+
+^
+	​
+
+)
+2
+
+where
+
+y
+i
+	​
+
+ = Actual value
+y
+i
+	​
+
+^
+	​
+
+ = Predicted value
+n = Number of observations
+Result
+Metric	Value
+MSE	47.36
+Interpretation
+
+An MSE of 47.36 means that the average squared prediction error is relatively small considering MonthlyCharges ranges roughly from 18 to 120. Lower MSE indicates better prediction accuracy.
+
+R² Score
+
+R² (Coefficient of Determination) measures how much of the variance in the target variable is explained by the model.
+
+R
+2
+=1−
+∑(y−
+y
+ˉ
+	​
+
+)
+2
+∑(y−
+y
+^
+	​
+
+)
+2
+	​
+
+Result
+Metric	Value
+R²	0.9477
+Interpretation
+
+An R² score of 0.9477 means approximately 94.8% of the variation in MonthlyCharges is explained by the model.
+
+This indicates an excellent fit between the model and the data.
+
+Feature Coefficient Interpretation
+
+Linear Regression coefficients indicate how much the predicted MonthlyCharges changes when a feature changes by one unit while keeping all other variables constant.
+
+Positive coefficients increase the prediction.
+
+Negative coefficients decrease the prediction.
+
+Top important coefficients:
+
+Feature	Coefficient	Interpretation
+InternetService_Fiber optic	+5.62	Customers using Fiber Optic internet pay approximately ₹5.6 more per month compared to the reference internet type.
+StreamingMovies_Yes	+3.13	Customers subscribing to Streaming Movies pay around ₹3.1 more monthly.
+StreamingTV_Yes	+3.09	Streaming TV service increases expected monthly charges by roughly ₹3.1.
+
+Most customerID coefficients are zero because customer IDs contain no meaningful predictive information and are unique identifiers.
+
+Ridge Regression
+
+Ridge Regression extends Linear Regression by adding L2 regularization.
+
+Objective function:
+
+RSS+λ∑β
+2
+
+where
+
+RSS = Residual Sum of Squares
+λ = Regularization strength
+
+The regularization term shrinks coefficients and reduces overfitting.
+
+Ridge vs Ordinary Least Squares
+Model	MSE	R²
+Linear Regression	47.36	0.9477
+Ridge Regression	45.17	0.9501
+Interpretation
+
+Ridge Regression slightly outperformed Ordinary Least Squares.
+
+Compared with Linear Regression:
+
+Lower prediction error
+Higher R² score
+More stable coefficients
+Better generalization on unseen data
+
+Although the improvement is modest, Ridge Regression is preferable because regularization reduces overfitting while maintaining high accuracy.
+
+Logistic Regression
+
+The classification task predicts whether a customer will churn.
+
+Target:
+
+0 = No Churn
+1 = Churn
+Class Distribution
+Before Training
+Class	Count
+No Churn	4138
+Churn	1496
+
+This corresponds to:
+
+No Churn: 73.4%
+Churn: 26.6%
+Interpretation
+
+The dataset is imbalanced because non-churn customers greatly outnumber churn customers.
+
+This imbalance makes overall accuracy less informative, so additional metrics such as Precision, Recall, F1-score, and ROC-AUC are used.
+
+Confusion Matrix
+                 Predicted
+
+              No      Yes
+
+Actual No     972      64
+
+Actual Yes    211     162
+
+Meaning:
+
+True Negatives (TN): 972
+False Positives (FP): 64
+False Negatives (FN): 211
+True Positives (TP): 162
+Precision
+
+Formula
+
+Precision=
+TP+FP
+TP
+	​
+
+
+Result
+
+0.7168
+
+Interpretation
+
+When the model predicts that a customer will churn, it is correct about 71.7% of the time.
+
+High precision means fewer false alarms.
+
+Recall
+
+Formula
+
+Recall=
+TP+FN
+TP
+	​
+
+
+Result
+
+0.4343
+
+Interpretation
+
+The model detects only 43.4% of customers who actually churn.
+
+This relatively low recall indicates many churning customers are missed.
+
+F1 Score
+
+Formula
+
+F1=2×
+Precision+Recall
+Precision×Recall
+	​
+
+
+Result
+
+0.5409
+
+Interpretation
+
+The F1 score balances Precision and Recall.
+
+Because Recall is relatively low, the overall F1 score is moderate.
+
+Accuracy
+
+Result
+
+80.48%
+
+Interpretation
+
+Although accuracy appears high, it is influenced by the class imbalance. Therefore, Precision, Recall, F1-score, and ROC-AUC provide a more complete assessment of model performance.
+
+Classification Report
+Metric	Class 0	Class 1
+Precision	0.82	0.72
+Recall	0.94	0.43
+F1-score	0.88	0.54
+Interpretation
+
+The model performs very well in identifying customers who will not churn (Class 0), but it is less effective at detecting customers who will churn (Class 1), as shown by the lower recall and F1-score.
+
+ROC Curve
+
+The ROC curve plots:
+
+True Positive Rate (Recall)
+False Positive Rate
+
+for every possible decision threshold.
+
+A model whose curve stays closer to the upper-left corner has better discrimination ability.
+
+Area Under the Curve (AUC)
+
+Result
+
+0.8561
+
+Interpretation
+
+AUC measures the model's ability to distinguish churners from non-churners.
+
+General guideline:
+
+AUC	Quality
+0.50	Random guessing
+0.60–0.70	Fair
+0.70–0.80	Good
+0.80–0.90	Very Good
+>0.90	Excellent
+
+An AUC of 0.8561 indicates the logistic regression model has very good discriminatory power and can effectively rank customers by their likelihood of churn.
+
+Logistic Regression Regularization Parameter (C)
+
+The inverse regularization parameter C controls the amount of regularization applied.
+
+Small C → Stronger regularization, simpler model, reduced overfitting.
+Large C → Weaker regularization, model fits training data more closely, increasing the risk of overfitting.
+
+Using C = 0.01 applies stronger regularization, resulting in:
+
+Precision: 0.7027
+Recall: 0.4879
+AUC: 0.8557
+
+Compared with the default model, recall improves slightly while AUC remains nearly unchanged, showing that stronger regularization produces a simpler model with similar overall performance.
+
+Probability Prediction Using predict_proba()
+
+Instead of predicting only Yes/No, Logistic Regression first estimates the probability that each customer will churn using predict_proba().
+
+These probabilities are then converted into class labels by applying different decision thresholds.
+
+Threshold Sensitivity Analysis
+Threshold	Precision	Recall	F1
+0.30	0.7168	0.4343	0.5409
+0.40	0.7168	0.4343	0.5409
+0.50	0.7168	0.4343	0.5409
+0.60	0.7168	0.4343	0.5409
+0.70	0.7168	0.4343	0.5409
+Best Threshold
+
+The highest F1-score occurs at 0.30 (tied across the evaluated thresholds).
+
+Threshold Choice
+
+A threshold of 0.30 is appropriate for customer churn prediction because businesses often prioritize identifying as many potential churners as possible. Using a lower threshold generally increases recall, allowing customer retention teams to proactively contact more at-risk customers, even if it results in some additional false positives.
+
+Note: In this run, the metrics are identical across all thresholds, suggesting the predicted probabilities are concentrated away from the tested threshold range or that the thresholding logic in the implementation may need verification.
+
+Bootstrap Confidence Interval
+
+To compare the default Logistic Regression model and the regularized model statistically, bootstrap resampling was performed.
+
+Procedure:
+
+500 bootstrap samples were generated using np.random.choice(..., replace=True).
+For each sample, the AUC of both models was computed.
+The difference in AUC was recorded.
+The mean difference and the 2.5th and 97.5th percentiles formed a 95% confidence interval.
+Results
+Metric	Value
+Mean AUC Difference	0.0004
+Lower 95% CI	−0.0008
+Upper 95% CI	0.0016
+Interpretation
+
+The 95% confidence interval includes zero, indicating that the observed difference in AUC between the default Logistic Regression model and the regularized model is not statistically significant. Based on the bootstrap analysis, there is insufficient evidence to conclude that one model consistently outperforms the other in terms of AUC. Both models exhibit essentially equivalent discrimination performance on this dataset.
+
 # Part 3 – Ensemble Learning, Model Selection and Pipeline
 
 ## Objective
@@ -491,8 +834,8 @@ A Pipeline was constructed using:
 
 Parameter Grid
 
-- n_estimators = [50,100,200]
-- max_depth = [5,10,None]
+- n_estimators = [50,100]
+- max_depth = [5,10]
 - min_samples_leaf = [1,5]
 
 Total parameter combinations
@@ -582,12 +925,6 @@ This demonstrates that the model can be deployed without retraining.
 ---
 
 # Final Model Comparison
-| Model | 5-Fold Mean AUC | 5-Fold Std AUC | Test AUC |
-|--------|-----------------|---------------|----------|
-| Logistic Regression | *Your Output* | *Your Output* | *Your Output* |
-| Decision Tree | *Your Output* | *Your Output* | *Your Output* |
-| Random Forest | *Your Output* | *Your Output* | *Your Output* |
-| Gradient Boosting | *Your Output* | *Your Output* | *Your Output* |
 
 ---
 
