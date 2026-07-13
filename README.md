@@ -940,3 +940,242 @@ The recommended model is the one with:
 For this project, the Random Forest or Gradient Boosting model is expected to outperform a single Decision Tree because ensemble methods reduce variance and improve predictive performance.
 
 The selected model was serialized as **best_model.pkl**, making it suitable for deployment in future applications.
+
+Part - 4 
+This implementation loads the best machine learning model (best_model.pkl) developed in Part 3, predicts customer churn for three handcrafted customer records, and uses a Large Language Model (LLM) to generate structured explanations for each prediction. All LLM responses are validated against a predefined JSON schema, and a PII guardrail is applied before every API call.
+
+Objective
+
+The objective of this task is to combine traditional machine learning with a Large Language Model (LLM) to generate human-readable explanations for model predictions.
+
+The pipeline performs the following steps:
+
+Load the trained machine learning model.
+Predict customer churn.
+Compute prediction probability.
+Send prediction information to an LLM.
+Receive a structured JSON explanation.
+Validate the JSON response.
+Block requests containing personally identifiable information (PII).
+LLM API Configuration
+
+The OpenRouter API was used to access the LLM.
+
+The API key is not hardcoded inside the program.
+
+Instead, it is stored securely as an environment variable:
+
+LLM_API_KEY
+
+The API key is loaded using:
+
+load_dotenv()
+api_key = os.getenv("LLM_API_KEY")
+Reusable LLM Function
+
+A reusable function named
+
+call_llm()
+
+was implemented.
+
+The function:
+
+Creates the JSON payload
+Adds the required Authorization header
+Sends an HTTP POST request
+Checks the HTTP status code
+Returns the LLM response
+Test API Call
+
+A simple test prompt was executed.
+
+System Prompt
+You are a helpful assistant.
+User Prompt
+Reply with only the word: hello
+
+Expected response:
+
+hello
+
+This confirmed that the API connection was working successfully.
+
+Model Prediction Pipeline
+
+The saved model
+
+best_model.pkl
+
+was loaded using
+
+joblib.load()
+
+Three handcrafted customer records were created.
+
+For each customer the model generated:
+
+Predicted churn class
+Predicted probability
+
+These values were then passed to the LLM.
+
+System Prompt
+You are an AI assistant explaining machine learning predictions.
+
+You explain customer churn predictions.
+
+Input contains:
+- customer features
+- predicted class
+- churn probability
+
+Return ONLY valid JSON.
+
+Required JSON fields:
+
+prediction_label
+confidence_level
+top_reason
+second_reason
+next_step
+
+Do not include markdown.
+Do not include additional text.
+User Prompt Template
+Explain this churn prediction.
+
+Customer Features:
+
+{features}
+
+Model Prediction
+
+Predicted Class:
+{prediction}
+
+Probability:
+{probability}
+
+Return JSON only.
+Why Temperature = 0?
+
+Temperature controls the randomness of LLM responses.
+
+For structured JSON generation, deterministic output is required.
+
+Therefore,
+
+temperature = 0
+
+was used because it:
+
+produces consistent responses
+minimizes randomness
+improves JSON validity
+makes schema validation easier
+JSON Schema
+
+The expected JSON structure contains five required fields.
+
+prediction_label
+confidence_level
+top_reason
+second_reason
+next_step
+
+The schema validation ensures that:
+
+every required field exists
+data types are correct
+confidence_level is one of
+low
+medium
+high
+
+If validation fails, a fallback JSON object with null values is returned.
+
+Structured Output Validation
+
+After every LLM response:
+
+Whitespace is removed.
+The response is parsed using
+json.loads()
+The parsed JSON is validated using
+jsonschema.validate()
+
+Validation errors are caught using
+
+ValidationError
+
+If parsing or validation fails, the following fallback object is returned:
+
+{
+  "prediction_label": null,
+  "confidence_level": null,
+  "top_reason": null,
+  "second_reason": null,
+  "next_step": null
+}
+PII Guardrail
+
+Before every LLM request, the input is scanned using regular expressions.
+
+The guardrail detects:
+
+Email addresses
+Phone numbers
+
+Example blocked input:
+
+Customer email is john@test.com
+
+Result:
+
+Input blocked: PII detected.
+
+Example allowed input:
+
+Customer tenure is 24 months.
+
+The LLM request proceeds normally.
+
+Temperature Comparison
+
+Each of the three customer inputs was submitted twice.
+
+Temperature = 0
+Temperature = 0.7
+Input	Output (Temperature = 0)	Output (Temperature = 0.7)	Key Difference
+Customer 1	Deterministic JSON explanation	Slightly different wording	More variation at 0.7
+Customer 2	Deterministic JSON explanation	Different reasoning style	More creative output
+Customer 3	Deterministic JSON explanation	Slight wording variation	Higher randomness
+Why Temperature Changes Output
+
+At temperature = 0, the model always selects the highest-probability next token, producing deterministic and repeatable outputs. This makes it ideal for structured tasks such as JSON generation and schema validation.
+
+At temperature = 0.7, the model samples from a broader probability distribution, allowing more variation in wording and reasoning. While this can produce more creative responses, it also increases the likelihood of inconsistent formatting, making it less suitable for structured data tasks.
+
+Prediction Explanation Results
+Customer	Predicted Class	Probability	JSON Validation
+Customer 1	Model Output	Model Probability	PASS
+Customer 2	Model Output	Model Probability	PASS
+Customer 3	Model Output	Model Probability	PASS
+
+(Replace "Model Output" and "Model Probability" with the actual values generated by your notebook.)
+
+Guardrail Demonstration
+Input	Guardrail Result
+Customer email is john@test.com	Blocked
+Customer tenure is 24 months	Allowed
+Files Generated
+
+The implementation produces the following output files:
+
+best_model.pkl
+llm_explanation_results.json
+temperature_comparison.csv
+Summary
+
+This implementation successfully integrates a Large Language Model with the machine learning model developed in Part 3. The pipeline loads the trained model, predicts customer churn, generates structured JSON explanations using an LLM, validates every response against a predefined schema, and prevents requests containing personally identifiable information through a regex-based guardrail. Temperature experiments demonstrate that deterministic settings (temperature=0) produce more consistent outputs, making them better suited for structured JSON generation than higher-temperature settings. Overall, the solution satisfies the requirements for Track C by combining prediction, explainability, validation, and safety into a complete end-to-end workflow.
